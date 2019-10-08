@@ -14,9 +14,9 @@ class Chat(LineReceiver):
 
     def lineReceived(self, line):
         if self.state == "GETNAME":
-            self.handle_GETNAME(line)
+            self.handle_GETNAME(line.decode("utf-8"))
         else:
-            self.handle_CHAT(line)
+            self.handle_CHAT(line.decode("utf-8"))
 
     def handle_GETNAME(self, name):
         if name in self.users:
@@ -29,9 +29,14 @@ class Chat(LineReceiver):
 
     def handle_CHAT(self, message):
         message = "<{0}> {1}".format(self.name, message)
-        for name, protocol in self.users.iteritems():
+        for name, protocol in self.users.items():
             if protocol != self:
                 protocol.sendLine(message.encode("utf-8"))
+
+    def connectionLost(self, reason):
+        print(reason)
+        if self.name in self.users:
+            del self.users[self.name]
 
 
 class ChatFactory(Factory):
