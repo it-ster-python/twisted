@@ -1,26 +1,20 @@
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.protocols.basic import LineReceiver
+import event
 
 from threading import Thread
 import time
 
 MESSAGE = []
 
-def sender(connection, storage):
-    while True:
-        print("sender")
-        if len(storage):
-            if storage != "close":
-                connection.sendLine(storage[0].encode("utf-8"))
-                storage = []
-            else:
-                connection.connectionLost()
-                break
-        else:
-            time.sleep(1)
+class Message():
 
-
+    @event.Event.origin("new_message", post=True)
+    def add_message(self, message):
+        for _ in range(20):
+            time.sleep(2)
+            message.append("Text")
 
 class ChatClient(LineReceiver):
 
@@ -28,17 +22,14 @@ class ChatClient(LineReceiver):
         self.name = name
         self.state = "OFFLINE"
         self.work = True
+        event.Event(name="new_message", callback=self.send_message)
 
     def connectionMade(self):
-        # worker = Thread(target=sender, args=(self,MESSAGE))
-        # worker.start()
         pass
 
     def lineReceived(self, line):
         if self.state == "ONLINE":
             print(line.decode("utf-8"))
-            worker = Thread(target=sender, args=(self,MESSAGE))
-            worker.start()
         elif self.state == "OFFLINE":
             print(line.decode("utf-8"))
             self.sendLine("{}".format(self.name).encode("utf-8"))
@@ -48,15 +39,20 @@ class ChatClient(LineReceiver):
         print("Lost.")
         self.work = False
 
-    def send_message(self, message):
-        self.sendLine("{}".format(message).encode("utf-8"))
+    def send_message(self, *args, **kwargs):
+        try:
+            message = MESSAGE[0]
+        except IndexError:
+            print("ERROR")
+        else:
+            del MESSAGE[0]
+            self.sendLine("{}".format(message).encode("utf-8"))
 
 
 class ChatClientFactory(ClientFactory):
 
     def __init__(self, name):
         self.name = name
-        self.message = "None"
 
     def clientConnectionFailed(self, connector, reason):
         print("Failed.")
@@ -68,16 +64,15 @@ class ChatClientFactory(ClientFactory):
 
     def buildProtocol(self, addr):
         self.connection = ChatClient(self.name)
+        message = Message()
+        worker = Thread(target=message.add_message, args=(MESSAGE,))
+        worker.start()
         return self.connection
 
 
 if __name__ == "__main__":
-    # import time
 
     # TODO запилить парсер аргументов
-    chat = ChatClientFactory("Dima")
-    reactor.connectTCP("192.168.4.123", 5000, chat)
+    chat = ChatClientFactory("Vasia")
+    reactor.connectTCP("127.0.0.1", 5000, chat)
     reactor.run()
-    while True:
-        MESSAGE.append("Message")
-        time.sleep(3)
