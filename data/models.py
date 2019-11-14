@@ -22,26 +22,6 @@ class User(peewee.Model):
         table_name = "users"
 
 
-class Message(peewee.Model):
-
-    text = peewee.TextField()
-    user = peewee.ForeignKeyField(
-        User,
-        backref="messages"
-    )
-    chat = peewee.ForeignKeyField(
-        "Chat",
-        backref="messages"
-    )
-    create = peewee.DateTimeField(
-        default=datetime.now()
-    )
-
-    class Meta:
-        database = db
-        table_name = "messages"
-
-
 class Chat(peewee.Model):
 
     name = peewee.CharField(
@@ -56,6 +36,26 @@ class Chat(peewee.Model):
     class Meta:
         database = db
         table_name = "chats"
+
+
+class Message(peewee.Model):
+
+    text = peewee.TextField()
+    user = peewee.ForeignKeyField(
+        User,
+        backref="messages"
+    )
+    chat = peewee.ForeignKeyField(
+        Chat,
+        backref="messages"
+    )
+    create = peewee.DateTimeField(
+        default=datetime.now()
+    )
+
+    class Meta:
+        database = db
+        table_name = "messages"
 
 
 class Salt(peewee.Model):

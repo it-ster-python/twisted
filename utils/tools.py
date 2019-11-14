@@ -5,7 +5,7 @@ import pickle
 def hash256(*args):
     data = bytes()
     for arg in args:
-        data += pickle(args)
+        data += pickle.dumps(args)
     return hashlib.sha256(data).hexdigest()
 
 
