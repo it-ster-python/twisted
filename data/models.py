@@ -78,6 +78,9 @@ class Salt(peewee.Model):
         database = db
         table_name = "salt"
 
+    def __str__(self):
+        return f"{self.user.login} -> {self.value}"
+
 
 if __name__ == '__main__':
     salt = Salt()

@@ -1,5 +1,6 @@
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
+
 db = PostgresqlExtDatabase(
     "mega_chat",
     user="postgres",
