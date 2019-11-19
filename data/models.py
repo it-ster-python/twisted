@@ -5,6 +5,7 @@ from utils import tools
 
 
 class User(peewee.Model):
+    __x = property()
 
     login = peewee.CharField(
         max_length=20,
@@ -16,6 +17,30 @@ class User(peewee.Model):
     last_login = peewee.DateTimeField(
         default=datetime.now()
     )
+
+    def is_login(self, password):
+        salt = Salt.get(user=self)
+        hash_pass = tools.hash256(
+            tools.str_to_sotr_list(password, salt.value)
+        )
+        return self.hash_pass == hash_pass
+
+    @__x.setter
+    def password(self, value):
+        self.pass_salt = Salt()
+        self.hash_pass = tools.hash256(
+            tools.str_to_sotr_list(value, self.pass_salt.value)
+        )
+
+    def save(self):
+        record_id = super().save()
+        try:
+            self.pass_salt.user = self
+        except AttributeError:
+            pass
+        else:
+            self.pass_salt.save()
+        return record_id
 
     class Meta:
         database = db

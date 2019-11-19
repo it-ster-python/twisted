@@ -97,5 +97,64 @@ class TestSaltCreate(unittest.TestCase):
         )
 
 
+class TestUserLogin(unittest.TestCase):
+
+    def setUp(self):
+        self.test_data = {
+            "login": "admin",
+            "password": "admin"
+        }
+        self.test_error_data = {
+            "login": "admin",
+            "password": "1234555"
+        }
+        user = models.User()
+        salt = models.Salt()
+        user.login = self.test_data.get("login")
+        user.hash_pass = tools.hash256(
+            tools.str_to_sotr_list(
+                self.test_data.get("password"),
+                salt.value
+            )
+        )
+        user.save()
+        salt.user = user
+        salt.save()
+
+    def test_login_pass(self):
+        user = models.User.get(login=self.test_data.get("login"))
+        salt = user.salt[0].value
+        hash_pass = tools.hash256(
+            tools.str_to_sotr_list(
+                self.test_data.get("password"),
+                salt
+            )
+        )
+        self.assertEqual(user.hash_pass, hash_pass)
+
+    def test_error_login(self):
+        user = models.User.get(login=self.test_error_data.get("login"))
+        salt = models.Salt.get(user=user)
+        hash_pass = tools.hash256(
+            tools.str_to_sotr_list(
+                self.test_error_data.get("password"),
+                salt.value
+            )
+        )
+        self.assertNotEqual(user.hash_pass, hash_pass)
+
+    def test_is_login(self):
+        user = models.User.get(login=self.test_data.get("login"))
+        self.assertTrue(user.is_login(self.test_data.get("password")))
+
+    def tearDown(self):
+        models.User.truncate_table(
+            restart_identity=True, cascade=True
+        )
+        models.Salt.truncate_table(
+            restart_identity=True, cascade=True
+        )
+
+
 if __name__ == '__main__':
     unittest.main()
