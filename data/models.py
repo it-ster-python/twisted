@@ -18,7 +18,7 @@ class User(peewee.Model):
         default=datetime.now()
     )
 
-    def is_login(self, password):
+    def check_password(self, password):
         salt = Salt.get(user=self)
         hash_pass = tools.hash256(
             tools.str_to_sotr_list(password, salt.value)
