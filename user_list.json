@@ -26,5 +26,13 @@
     {
         "login": "alex-margera",
         "password": "reneu12344321"
+    },
+    {
+        "login": "admin",
+        "password": "47461031"
+    },
+    {
+        "login": "Test",
+        "password": "12345678"
     }
 ]

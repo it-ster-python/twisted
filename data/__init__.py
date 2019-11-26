@@ -6,13 +6,13 @@ db = PostgresqlExtDatabase(
     user="postgres",
     host="localhost",
     port=5432,
-    password="Cin>>passwd"
+    password="Cin>>passwd",
 )
 
 from data import models
 
 db.connect()
 db.create_tables(
-    [models.User, models.Message, models.Chat, models.Salt]
+    [models.User, models.Message, models.Chat, models.Salt, models.UsersChats]
 )
 db.close()
