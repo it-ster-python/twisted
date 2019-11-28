@@ -2,6 +2,7 @@ from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
 import json
+from data import models
 
 
 class Chat(LineReceiver):
@@ -11,40 +12,51 @@ class Chat(LineReceiver):
         self.state = "GETNAME"
 
     def connectionMade(self):
-        data = {
-            "status": "OK",
-            "message": "What's your name?"
-        }
+        data = {"status": "OK", "message": "What's your name?"}
         self.sendLine(json.dumps(data).encode("utf-8"))
 
     def lineReceived(self, line):
         if self.state == "GETNAME":
-            self.handle_GETNAME(line.decode("utf-8"))
+            self.handle_AUTH(line.decode("utf-8"))
         else:
             self.handle_CHAT(line.decode("utf-8"))
 
-    def handle_GETNAME(self, line):
+    def handle_AUTH(self, line):
         data = json.loads(line)
-        print(data["login"], data["password"])
-        if data["login"] in self.users:
+        if data.get("login") in self.users:
             response = json.dumps(
                 {
                     "status": "ERROR",
-                    "message": "Name taken, please choose another"
+                    "message": "Name taken, please choose another",
                 }
             )
             self.sendLine(response.encode("utf-8"))
             return
-        response = json.dumps(
-            {
-                "status": "OK",
-                "message": f"Welcome {data['login']}."
-            }
-        )
-        self.sendLine(response.encode("utf-8"))
-        self.name = data["login"]
-        self.users[data["login"]] = self
-        self.state = "CHAT"
+        try:
+            user = models.User.get(login=data.get("login"))
+        except models.User.DoesNotExist:
+            response = json.dumps(
+                {
+                    "status": "ERROR",
+                    "message": f"User {data.get('login')} not found.",
+                }
+            )
+            self.sendLine(response.encode("utf-8"))
+            return
+        else:
+            if user.check_password(data.get("password")):
+                response = json.dumps(
+                    {"status": "OK", "message": f"Welcome {data['login']}."}
+                )
+                self.sendLine(response.encode("utf-8"))
+                self.name = data["login"]
+                self.users[data["login"]] = self
+                self.state = "CHAT"
+            else:
+                response = json.dumps(
+                    {"status": "ERROR", "message": "Invalid password."}
+                )
+                self.sendLine(response.encode("utf-8"))
 
     def handle_CHAT(self, message):
         data = json.dumps({"login": self.name, "message": message})
