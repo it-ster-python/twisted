@@ -2,6 +2,7 @@ from twisted.internet.protocol import Factory
 from twisted.protocols.basic import LineReceiver
 from twisted.internet import reactor
 import json
+from data import models
 
 
 class Chat(LineReceiver):
@@ -19,11 +20,11 @@ class Chat(LineReceiver):
 
     def lineReceived(self, line):
         if self.state == "GETNAME":
-            self.handle_GETNAME(line.decode("utf-8"))
+            self.handle_AUTH(line.decode("utf-8"))
         else:
             self.handle_CHAT(line.decode("utf-8"))
 
-    def handle_GETNAME(self, line):
+    def handle_AUTH(self, line):
         data = json.loads(line)
         print(data["login"], data["password"])
         if data["login"] in self.users:
@@ -42,11 +43,13 @@ class Chat(LineReceiver):
             }
         )
         self.sendLine(response.encode("utf-8"))
+        return
+    try:
         self.name = data["login"]
         self.users[data["login"]] = self
         self.state = "CHAT"
 
-    def handle_CHAT(self, message):
+    def handle_AUTH(self, message):
         data = json.dumps({"login": self.name, "message": message})
         for name, protocol in self.users.items():
             if protocol != self:

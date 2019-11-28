@@ -9,6 +9,17 @@ def hash256(*args):
     return hashlib.sha256(data).hexdigest()
 
 
+def str_to_sotr_list(*args):
+    res = []
+    for arg in args:
+        if isinstance(arg, str):
+            res.extend([*arg])
+        else:
+            raise ValueError("Arg mas be string.")
+    res.sort()
+    return res
+
+
 def __random(length):
     from random import random
 
