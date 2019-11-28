@@ -34,5 +34,9 @@
     {
         "login": "Test",
         "password": "12345678"
+    },
+    {
+        "login": "Gena",
+        "password": "genakriov321"
     }
 ]
