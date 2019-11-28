@@ -23,7 +23,6 @@ class Chat(LineReceiver):
 
     def handle_AUTH(self, line):
         data = json.loads(line)
-        # print(data["login"], data["password"])
         if data.get("login") in self.users:
             response = json.dumps(
                 {
