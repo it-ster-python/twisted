@@ -16,6 +16,7 @@ class Chat(LineReceiver):
         self.sendLine(json.dumps(data).encode("utf-8"))
 
     def lineReceived(self, line):
+        print("MESSAGE", line.decode("utf-8"))
         if self.state == "GETNAME":
             self.handle_AUTH(line.decode("utf-8"))
         else:
@@ -25,10 +26,7 @@ class Chat(LineReceiver):
         data = json.loads(line)
         if data.get("login") in self.users:
             response = json.dumps(
-                {
-                    "status": "ERROR",
-                    "message": "Name taken, please choose another",
-                }
+                {"status": "ERROR", "message": "Name taken, please choose another",}
             )
             self.sendLine(response.encode("utf-8"))
             return
@@ -36,10 +34,7 @@ class Chat(LineReceiver):
             user = models.User.get(login=data.get("login"))
         except models.User.DoesNotExist:
             response = json.dumps(
-                {
-                    "status": "ERROR",
-                    "message": f"User {data.get('login')} not found.",
-                }
+                {"status": "ERROR", "message": f"User {data.get('login')} not found."}
             )
             self.sendLine(response.encode("utf-8"))
             return
@@ -59,10 +54,11 @@ class Chat(LineReceiver):
                 self.sendLine(response.encode("utf-8"))
 
     def handle_CHAT(self, message):
-        data = json.dumps({"login": self.name, "message": message})
+        request = json.loads(message)
+        # Сохранение в БД request
         for name, protocol in self.users.items():
             if protocol != self:
-                protocol.sendLine(data.encode("utf-8"))
+                protocol.sendLine(message.encode("utf-8"))
 
     def connectionLost(self, reason):
         print(reason)
