@@ -75,5 +75,5 @@ class ChatFactory(Factory):
 
 
 if __name__ == "__main__":
-    reactor.listenTCP(5000, ChatFactory())
+    reactor.listenTCP(5000, ChatFactory(), interface="87.252.241.32")
     reactor.run()
