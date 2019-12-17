@@ -6,7 +6,7 @@ db = PostgresqlExtDatabase(
     user="postgres",
     host="localhost",
     port=5432,
-    password="Cin>>passwd",
+    password="12345678",
 )
 
 from data import models
